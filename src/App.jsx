@@ -23,7 +23,9 @@ import {
   Eye,
   EyeOff,
   Save,
-  Copy
+  Copy,
+  HelpCircle,
+  ExternalLink
 } from "lucide-react";
 
 /**
@@ -306,7 +308,12 @@ export default function App() {
       if (saved.themeKey) setThemeKey(saved.themeKey);
       if (saved.layoutMode) setLayoutMode(saved.layoutMode);
       if (saved.userInput) setUserInput(saved.userInput);
-      if (saved.markdownText) setMarkdownText(saved.markdownText);
+      if (saved.markdownText) {
+        setMarkdownText(saved.markdownText);
+      } else {
+        // Load default sample if no saved text exists
+        setMarkdownText(DEFAULT_MARKDOWN);
+      }
       if (saved.apiKey) setApiKey(saved.apiKey);
       if (saved.exportQuality) setExportQuality(saved.exportQuality);
       if (saved.accentOverride) setAccentOverride(saved.accentOverride);
@@ -761,6 +768,20 @@ visual 레이아웃에는 적절한 Unsplash URL(| image: URL)을 추가하라.
                 placeholder="발표 내용을 입력하세요..."
               />
               <div className="mt-4 flex flex-col gap-3">
+                </div>
+                
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-500 leading-relaxed">
+                  <div className="flex items-center gap-2 font-bold text-slate-700 mb-1">
+                    <HelpCircle size={14} /> 무료 Gemini API Key 발급 방법
+                  </div>
+                  <ol className="list-decimal pl-4 space-y-1">
+                    <li><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 inline-flex">Google AI Studio <ExternalLink size={10}/></a>에 접속합니다.</li>
+                    <li>"Create API key" 버튼을 클릭합니다.</li>
+                    <li>생성된 키를 복사하여 위 입력창에 붙여넣으세요.</li>
+                  </ol>
+                  <p className="mt-2 text-[10px] text-slate-400">* API 키는 브라우저에만 저장되며 서버로 전송되지 않습니다.</p>
+                </div>
+
                 <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-200">
                   <input
                     type={showKey ? "text" : "password"}
