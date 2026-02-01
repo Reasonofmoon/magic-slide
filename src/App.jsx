@@ -354,8 +354,7 @@ export default function App() {
   const [themeKey, setThemeKey] = useState("modern");
   const [layoutMode, setLayoutMode] = useState("horizontal");
   const [selectedTemplate, setSelectedTemplate] = useState("auto");
-  const [layoutMode, setLayoutMode] = useState("horizontal");
-  const [selectedTemplate, setSelectedTemplate] = useState("auto");
+
   const [targetSlideCount, setTargetSlideCount] = useState("auto");
   const [designConcept, setDesignConcept] = useState("");
   const [userInput, setUserInput] = useState("");
