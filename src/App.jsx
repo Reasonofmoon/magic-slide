@@ -1053,15 +1053,7 @@ export default function App() {
                 >
                   {isAiProcessing ? <Loader2 className="animate-spin" /> : <BrainCircuit />} AI 슬라이드 자동 설계
                 </button>
-              </div>
-            </div>
-                <button
-                  onClick={autoGenerateSlides}
-                  disabled={isAiProcessing || !userInput}
-                  className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-[2rem] font-black text-base shadow-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-30"
-                >
-                  {isAiProcessing ? <Loader2 className="animate-spin" /> : <BrainCircuit />} AI 슬라이드 자동 설계
-                </button>
+
               </div>
             </div>
 
