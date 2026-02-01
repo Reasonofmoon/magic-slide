@@ -1019,8 +1019,7 @@ export default function App() {
                 ))}
             </div>
 
-                ))}
-              </div>
+
 
               <div className="flex flex-col gap-2 mb-4">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Target Slide Count</label>
