@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(148, 163, 184, 0.18), transparent 50%),
+    radial-gradient(circle at 80% 0%, rgba(14, 116, 144, 0.12), transparent 45%),
+    #f8fafc;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-float-in {
+  animation: floatIn 0.5s ease-out;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(14, 116, 144, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 116, 144, 0);
+  }
+}
+
+.pulse-ring {
+  animation: pulseGlow 2.6s infinite;
+}
