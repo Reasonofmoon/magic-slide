@@ -308,6 +308,7 @@ export default function App() {
   const [themeKey, setThemeKey] = useState("modern");
   const [layoutMode, setLayoutMode] = useState("horizontal");
   const [selectedTemplate, setSelectedTemplate] = useState("auto");
+  const [targetSlideCount, setTargetSlideCount] = useState("auto");
   const [userInput, setUserInput] = useState("");
   const [markdownText, setMarkdownText] = useState("");
   const [status, setStatus] = useState("idle");
@@ -408,12 +409,18 @@ export default function App() {
     setProgress({ current: 0, total: 1, label: "AI 설계" });
 
     const template = TEMPLATES.find(t => t.id === selectedTemplate) || TEMPLATES[0];
+    const countInstruction = targetSlideCount === 'auto'
+      ? "내용의 분량과 깊이를 분석하여, 가장 효과적인 전달을 위해 필요한 슬라이드 개수(보통 3~7장)를 스스로 판단하여 구성하라."
+      : `반드시 총 ${targetSlideCount}장의 슬라이드로 구성해야 한다. 내용을 풍성하게 배분하여 각 슬라이드의 밀도를 조절하고, 너무 짧지 않게 하라.`;
+
     const systemPrompt = `전문 PPT 디자이너로서 사용자의 아이디어를 마크다운으로 설계하라.
 선택된 템플릿: ${template.label}
 템플릿 가이드: ${template.prompt}
+분량 가이드: ${countInstruction}
 
 반드시 지시어(<!-- layout: ... -->)를 포함하고,
-전체적으로 테마 컬러(${theme.secondary})와 어울리는 accent를 지정하라.`;
+전체적으로 테마 컬러(${theme.secondary})와 어울리는 accent를 지정하라.
+각 슬라이드는 '## 제목'으로 시작해야 한다.`;
 
     try {
       const response = await fetch(
@@ -1011,6 +1018,28 @@ export default function App() {
                   </button>
                 ))}
             </div>
+
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-2 mb-4">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Target Slide Count</label>
+                <div className="flex gap-2 bg-slate-50 p-1 rounded-xl self-start">
+                  {["auto", 3, 5, 8, 10].map((cnt) => (
+                    <button
+                      key={cnt}
+                      onClick={() => setTargetSlideCount(cnt)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                        targetSlideCount === cnt
+                          ? "bg-slate-900 text-white shadow-md"
+                          : "text-slate-400 hover:text-slate-600"
+                      }`}
+                    >
+                      {cnt === "auto" ? "Auto" : `${cnt} Pages`}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <textarea
                 value={userInput}
