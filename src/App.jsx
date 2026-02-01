@@ -38,7 +38,7 @@ import {
  */
 
 const STORAGE_KEY = "magic-slide-v4";
-const MODEL_ID = "gemini-2.5-flash-preview-09-2025";
+const STORAGE_KEY = "magic-slide-v4";
 
 const THEMES = {
   modern: {
