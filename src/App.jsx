@@ -25,7 +25,9 @@ import {
   Save,
   Copy,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  Scale,
+  GitCompare
 } from "lucide-react";
 
 /**
@@ -133,6 +135,29 @@ const TEMPLATES = [
 - Feature 1: [핵심 기능 1]
 - Feature 2: [핵심 기능 2]
 - Feature 3: [핵심 기능 3]`
+  },
+  {
+    id: "hero",
+    label: "임팩트 타이틀",
+    icon: Scale, // Using Scale temporarily as placeholder, check icons
+    desc: "강렬한 인상을 주는 대형 타이틀 레이아웃입니다.",
+    prompt: `크리에이티브 디렉터로서 강렬한 문구를 작성하라.
+반드시 다음 구조를 따라야 한다:
+## [메인 헤드카피] <!-- layout: title | accent: #F43F5E -->
+- Sub: [서브 카피]
+- Author: [발표자/팀명]`
+  },
+  {
+    id: "versus",
+    label: "A vs B 비교",
+    icon: GitCompare,
+    desc: "두 가지 대상을 비교 대조하는 레이아웃입니다.",
+    prompt: `분석가로서 두 대상을 비교하라.
+반드시 다음 구조를 따라야 한다:
+## 비교 분석 <!-- layout: versus | accent: #8B5CF6 -->
+- A: [대상 A의 특징]
+- B: [대상 B의 특징]
+- Result: [결론/시사점]`
   }
 ];
 
@@ -995,28 +1020,6 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {TEMPLATES.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelectedTemplate(t.id)}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
-                      selectedTemplate === t.id
-                        ? "bg-slate-900 border-slate-900 ring-2 ring-offset-2 ring-slate-900"
-                        : "bg-slate-50 border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                       <t.icon size={18} className={selectedTemplate === t.id ? "text-white" : "text-slate-900"} />
-                       <span className={`text-xs font-bold ${selectedTemplate === t.id ? "text-white" : "text-slate-900"}`}>
-                         {t.label}
-                       </span>
-                    </div>
-                    <p className={`text-[10px] leading-tight ${selectedTemplate === t.id ? "text-slate-300" : "text-slate-500"}`}>
-                      {t.desc}
-                    </p>
-                  </button>
-                ))}
             </div>
 
 
