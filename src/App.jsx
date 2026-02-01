@@ -89,9 +89,15 @@ AI 기반 엔터프라이즈 프레젠테이션 스튜디오
 
 ## 고객의 목소리 <!-- layout: quote | accent: #14B8A6 -->
 "단 한 번의 클릭으로 모든 슬라이드가 통일되는 경험은 혁신적이었습니다."
-- Director, Strategy Lab`;
+// Hyper-fast "Nano Banana" Model (Gemini 2.0 Flash)
+const MODEL_ID = "gemini-2.0-flash-exp"; 
 
-const TEMPLATES = [
+const generateImage = async (prompt) => {
+  const seed = Math.floor(Math.random() * 1000000);
+  const encoded = encodeURIComponent(prompt + " high quality, design asset, vector style, minimal, 8k");
+  // Using Pollinations.ai for instant, free generation (Flux/SDXL based)
+  return `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${seed}`;
+};
   {
     id: "auto",
     label: "자동 (Auto)",
@@ -145,6 +151,7 @@ const TEMPLATES = [
 **CRITICAL: 리스트를 한 줄에 나열하지 말고 반드시 줄바꿈하라.**
 반드시 다음 구조를 따라야 한다:
 ## [메인 헤드카피] <!-- layout: title | accent: #F43F5E -->
+[IMAGE: A cinematic, high-contrast abstract background representing the concept]
 - Sub: [서브 카피]
 - Author: [발표자/팀명]`
   },
@@ -319,6 +326,17 @@ const buildSections = (markdownText) => {
         .filter((line) => !line.trim().startsWith("##"))
         .filter((line) => !line.trim().startsWith("<!--"));
       
+      // Extract Image Prompts
+      let imagePrompt = null;
+      contentLines = contentLines.filter(line => {
+        const match = line.match(/^\[IMAGE:\s*(.*?)\]/);
+        if (match) {
+           imagePrompt = match[1];
+           return false; // Remove prompt line from visible content
+        }
+        return true;
+      });
+
       // Apply Safety Net Cleaning
       contentLines = cleanContentLines(contentLines);
 
@@ -331,6 +349,8 @@ const buildSections = (markdownText) => {
         layout: props.layout || "bullets",
         props,
         metric: metricMatch ? metricMatch[1] : null,
+        imagePrompt, // Store the prompt
+        imageUrl: null, // To be filled later
         raw: sec.trim()
       };
     })
@@ -359,6 +379,7 @@ export default function App() {
   const [designConcept, setDesignConcept] = useState("");
   const [userInput, setUserInput] = useState("");
   const [markdownText, setMarkdownText] = useState("");
+  const [slides, setSlides] = useState([]); // New state for rich slide data (images etc)
   const [status, setStatus] = useState("idle");
   const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
   const [previewImages, setPreviewImages] = useState([]);
@@ -470,6 +491,7 @@ export default function App() {
 템플릿 가이드: ${template.prompt}
 분량 가이드: ${countInstruction}
 스타일 가이드: ${conceptInstruction}
+이미지 가이드: 각 슬라이드의 핵심 비주얼을 설명하는 [IMAGE: 프롬프트] 태그를 하나씩 포함하라. 프롬프트는 영어로 상세하게 작성하라.
 
 **CRITICAL RULE**: 절대로 불렛포인트를 한 줄에 나열하지 마라.
 각 항목은 반드시 새로운 줄에 "- "로 시작해야 한다.
