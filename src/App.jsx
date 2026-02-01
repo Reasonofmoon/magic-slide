@@ -92,9 +92,11 @@ AI 기반 엔터프라이즈 프레젠테이션 스튜디오
 
 const MODEL_ID = "gemini-3-flash-preview";
 
-const generateImage = async (prompt) => {
+const generateImage = async (prompt, concept) => {
   const seed = Math.floor(Math.random() * 1000000);
-  const encoded = encodeURIComponent(prompt + " high quality, design asset, vector style, minimal, 8k");
+  const style = concept ? `, style of ${concept}` : "";
+  const query = `${prompt}${style}, high quality, design asset, vector style, minimal, 8k`;
+  const encoded = encodeURIComponent(query);
   // Using Pollinations.ai for instant, free generation (Flux/SDXL based)
   return `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${seed}`;
 };
@@ -144,50 +146,7 @@ const TEMPLATES = [
 - Feature 2: [핵심 기능 2]
 - Feature 3: [핵심 기능 3]`
   },
-  {
-    id: "hero",
-    label: "자동 (Auto)",
-    icon: Sparkles,
-    desc: "AI가 내용에 맞춰 최적의 레이아웃을 자동 선택합니다.",
-    prompt: "사용자의 아이디어를 분석하여 가장 적절한 슬라이드 구성을 제안하라."
-  },
-  {
-    id: "swot",
-    label: "SWOT 분석",
-    icon: Layout,
-    desc: "강점, 약점, 기회, 위협을 4분면으로 시각화합니다.",
-    prompt: `SWOT 분석 전문가로서 내용을 분석하라. 
-반드시 다음 구조를 따라야 한다:
-## SWOT 분석 <!-- layout: swot | accent: #3B82F6 -->
-- Strength: [강점 내용]
-- Weakness: [약점 내용]
-- Opportunity: [기회 내용]
-- Threat: [위협 내용]`
-  },
-  {
-    id: "timeline",
-    label: "3단계 프로세스",
-    icon: ChevronRight,
-    desc: "순서가 있는 3단계 진행 과정을 타임라인으로 표현합니다.",
-    prompt: `프로세스 설계자로서 내용을 3단계로 요약하라.
-반드시 다음 구조를 따라야 한다:
-## 프로세스 로드맵 <!-- layout: timeline | accent: #10B981 -->
-- Step 1: [첫 번째 단계]
-- Step 2: [두 번째 단계]
-- Step 3: [세 번째 단계]`
-  },
-  {
-    id: "feature",
-    label: "3-Feature Grid",
-    icon: Zap,
-    desc: "3가지 핵심 기능을 강조하는 그리드 레이아웃입니다.",
-    prompt: `제품 기획자로서 3가지 핵심 요소를 도출하라.
-반드시 다음 구조를 따라야 한다:
-## 핵심 기능 <!-- layout: feature | accent: #8B5CF6 -->
-- Feature 1: [핵심 기능 1]
-- Feature 2: [핵심 기능 2]
-- Feature 3: [핵심 기능 3]`
-  },
+
   {
     id: "hero",
     label: "임팩트 타이틀",
@@ -234,7 +193,8 @@ const cleanContentLines = (rawLines) => {
 const STATUS_STEPS = [
   { key: "idle", label: "대기" },
   { key: "analyzing", label: "AI 설계" },
-  { key: "processing", label: "렌더링" },
+  { key: "visualizing", label: "비주얼 생성" },
+  { key: "layering", label: "레이어 합성" },
   { key: "complete", label: "완료" }
 ];
 
@@ -569,11 +529,14 @@ export default function App() {
         // 1. First Parse
         const sections = buildSections(result.trim());
         
-        // 2. Generate Images in Parallel
+        // 2. Generate Images in Parallel (Visualizing Step)
+        setStatus("visualizing");
+        setProgress({ current: 0, total: 1, label: "비주얼 레이어 생성 중..." });
+
         const updatedSections = await Promise.all(sections.map(async (sec) => {
            if (sec.imagePrompt) {
               try {
-                 const url = await generateImage(sec.imagePrompt);
+                 const url = await generateImage(sec.imagePrompt, designConcept);
                  return { ...sec, imageUrl: url };
               } catch (e) {
                  console.error("Image Gen Failed", e);
@@ -582,6 +545,13 @@ export default function App() {
            }
            return sec;
         }));
+
+        // 3. Layer Fusion (Layering Step)
+        setStatus("layering");
+        setProgress({ current: 0, total: 1, label: "텍스트/디자인 합성 중..." });
+        
+        // Simulate a brief delay for visual effect of layering
+        await new Promise(r => setTimeout(r, 800));
 
         setMarkdownText(result.trim());
         setSlides(updatedSections);
@@ -1516,7 +1486,19 @@ export default function App() {
                   </div>
                 </div>
               ))}
+              
+              {/* Dynamic Status Indicator for Visualizing/Layering */}
+              {(status === 'visualizing' || status === 'layering') && (
+                 <div className="mt-4 flex flex-col items-center animate-pulse">
+                    <Loader2 className="animate-spin text-purple-500 mb-2" />
+                    <span className="text-xs font-bold text-purple-600">
+                       {status === 'visualizing' ? "AI가 디자인 컨셉을 렌더링하고 있습니다..." : "최종 슬라이드 레이어를 합성하고 있습니다..."}
+                    </span>
+                 </div>
+              )}
             </div>
+            
+            <div className="relative">
           </main>
         </div>
       </div>
