@@ -1498,7 +1498,7 @@ export default function App() {
               )}
             </div>
             
-            <div className="relative">
+
           </main>
         </div>
       </div>
