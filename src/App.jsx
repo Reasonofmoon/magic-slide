@@ -772,6 +772,92 @@ export default function App() {
          });
        });
 
+    } else if (section.layout === "versus") {
+       // A vs B Layout
+       const midX = size.w / 2;
+       
+       // Background Panels
+       ctx.fillStyle = "#F8FAFC";
+       roundRectPath(ctx, margin, margin + 100, midX - margin - 20, size.h - margin - 120, 30);
+       ctx.fill();
+       
+       ctx.fillStyle = "#F0F9FF";
+       roundRectPath(ctx, midX + 20, margin + 100, midX - margin - 20, size.h - margin - 120, 30);
+       ctx.fill();
+
+       // VS Badge
+       ctx.fillStyle = theme.secondary;
+       ctx.beginPath();
+       ctx.arc(midX, size.h / 2 + 30, 40, 0, Math.PI*2);
+       ctx.fill();
+       ctx.shadowBlur = 0;
+       ctx.fillStyle = "white";
+       ctx.textAlign = "center";
+       ctx.font = `900 30px "Space Grotesk"`;
+       ctx.fillText("VS", midX, size.h / 2 + 40);
+
+       // Content
+       const a = section.content.find(l => l.startsWith("- A:")) || "";
+       const b = section.content.find(l => l.startsWith("- B:")) || "";
+       
+       ctx.fillStyle = theme.text;
+       fitTextBlock({
+          ctx,
+          text: a.replace("- A:", "").trim(),
+          box: { x: margin + 30, y: margin + 130, w: midX - margin - 80, h: size.h - margin - 180 },
+          maxFontPx: 30,
+          minFontPx: 20,
+          align: "center",
+          fontWeight: 600
+       });
+       fitTextBlock({
+          ctx,
+          text: b.replace("- B:", "").trim(),
+          box: { x: midX + 50, y: margin + 130, w: midX - margin - 80, h: size.h - margin - 180 },
+          maxFontPx: 30,
+          minFontPx: 20,
+          align: "center",
+          fontWeight: 600
+       });
+
+       // Title
+       ctx.fillStyle = accent;
+       fitTextBlock({
+         ctx,
+         text: section.title,
+         box: { x: margin, y: margin, w: innerW, h: 80 },
+         maxFontPx: 50,
+         minFontPx: 30,
+         align: "center",
+         fontWeight: 800
+       });
+
+    } else if (section.layout === "hero") {
+      // Hero Title Layout
+      ctx.fillStyle = accent;
+      fitTextBlock({
+        ctx,
+        text: section.title,
+        box: { x: margin, y: size.h * 0.3, w: innerW, h: size.h * 0.3 },
+        maxFontPx: 120,
+        minFontPx: 60,
+        align: "center",
+        lineHeightRatio: 1.1,
+        fontWeight: 900
+      });
+      
+      const sub = section.content.find(l => l.startsWith("- Sub:")) || "";
+      ctx.fillStyle = theme.muted;
+      fitTextBlock({
+        ctx,
+        text: sub.replace("- Sub:", "").trim(),
+        box: { x: margin, y: size.h * 0.6, w: innerW, h: size.h * 0.15 },
+        maxFontPx: 40,
+        minFontPx: 24,
+        align: "center",
+        fontWeight: 500
+      });
+
     } else {
       ctx.fillStyle = accent;
       fitTextBlock({
