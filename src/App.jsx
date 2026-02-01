@@ -38,7 +38,6 @@ import {
  */
 
 const STORAGE_KEY = "magic-slide-v4";
-const STORAGE_KEY = "magic-slide-v4";
 
 const THEMES = {
   modern: {
