@@ -139,9 +139,10 @@ const TEMPLATES = [
   {
     id: "hero",
     label: "임팩트 타이틀",
-    icon: Scale, // Using Scale temporarily as placeholder, check icons
+    icon: Scale,
     desc: "강렬한 인상을 주는 대형 타이틀 레이아웃입니다.",
     prompt: `크리에이티브 디렉터로서 강렬한 문구를 작성하라.
+**CRITICAL: 리스트를 한 줄에 나열하지 말고 반드시 줄바꿈하라.**
 반드시 다음 구조를 따라야 한다:
 ## [메인 헤드카피] <!-- layout: title | accent: #F43F5E -->
 - Sub: [서브 카피]
@@ -153,6 +154,7 @@ const TEMPLATES = [
     icon: GitCompare,
     desc: "두 가지 대상을 비교 대조하는 레이아웃입니다.",
     prompt: `분석가로서 두 대상을 비교하라.
+**CRITICAL: 리스트를 한 줄에 나열하지 말고 반드시 줄바꿈하라.**
 반드시 다음 구조를 따라야 한다:
 ## 비교 분석 <!-- layout: versus | accent: #8B5CF6 -->
 - A: [대상 A의 특징]
@@ -160,6 +162,21 @@ const TEMPLATES = [
 - Result: [결론/시사점]`
   }
 ];
+
+// Content Cleaning Utility (Safety Net)
+const cleanContentLines = (rawLines) => {
+  return rawLines.flatMap(line => {
+    // 1. Split bullet points that are stuck together (e.g. "Item 1 • Item 2")
+    if (line.includes("•") || line.includes("·")) {
+       return line.split(/[•·]/).map(p => p.trim()).filter(p => p.length > 0).map(p => `- ${p}`);
+    }
+    // 2. Recover proper markdown list syntax if missing space (e.g. "-Item")
+    if (line.match(/^-\S/)) {
+      return [`- ${line.substring(1)}`];
+    }
+    return [line];
+  });
+};
 
 const STATUS_STEPS = [
   { key: "idle", label: "대기" },
@@ -298,9 +315,13 @@ const buildSections = (markdownText) => {
       const lines = sec.trim().split("\n");
       const titleLine = lines.find((line) => line.trim().startsWith("##")) || "## Untitled";
       const title = titleLine.replace(/^##\s*/g, "").trim();
-      const contentLines = lines
+      let contentLines = lines
         .filter((line) => !line.trim().startsWith("##"))
         .filter((line) => !line.trim().startsWith("<!--"));
+      
+      // Apply Safety Net Cleaning
+      contentLines = cleanContentLines(contentLines);
+
       const props = parseDirectives(sec);
       const metricMatch = sec.match(/(\d+(?:\.\d+)?%)/);
       return {
@@ -333,7 +354,10 @@ export default function App() {
   const [themeKey, setThemeKey] = useState("modern");
   const [layoutMode, setLayoutMode] = useState("horizontal");
   const [selectedTemplate, setSelectedTemplate] = useState("auto");
+  const [layoutMode, setLayoutMode] = useState("horizontal");
+  const [selectedTemplate, setSelectedTemplate] = useState("auto");
   const [targetSlideCount, setTargetSlideCount] = useState("auto");
+  const [designConcept, setDesignConcept] = useState("");
   const [userInput, setUserInput] = useState("");
   const [markdownText, setMarkdownText] = useState("");
   const [status, setStatus] = useState("idle");
@@ -438,10 +462,23 @@ export default function App() {
       ? "내용의 분량과 깊이를 분석하여, 가장 효과적인 전달을 위해 필요한 슬라이드 개수(보통 3~7장)를 스스로 판단하여 구성하라."
       : `반드시 총 ${targetSlideCount}장의 슬라이드로 구성해야 한다. 내용을 풍성하게 배분하여 각 슬라이드의 밀도를 조절하고, 너무 짧지 않게 하라.`;
 
+    const conceptInstruction = designConcept 
+      ? `DESIGN CONCEPT: "${designConcept}"\n- 이 디자인 컨셉에 맞춰서 accent 컬러값(Hex)을 변경하라.\n- 문체와 톤앤매너를 이 컨셉에 맞게 조정하라.` 
+      : "기본 모던/심플 스타일을 유지하라.";
+
     const systemPrompt = `전문 PPT 디자이너로서 사용자의 아이디어를 마크다운으로 설계하라.
 선택된 템플릿: ${template.label}
 템플릿 가이드: ${template.prompt}
 분량 가이드: ${countInstruction}
+스타일 가이드: ${conceptInstruction}
+
+**CRITICAL RULE**: 절대로 불렛포인트를 한 줄에 나열하지 마라.
+각 항목은 반드시 새로운 줄에 "- "로 시작해야 한다.
+잘못된 예: - 항목1 • 항목2 • 항목3
+올바른 예:
+- 항목1
+- 항목2
+- 항목3
 
 반드시 지시어(<!-- layout: ... -->)를 포함하고,
 전체적으로 테마 컬러(${theme.secondary})와 어울리는 accent를 지정하라.
@@ -1126,6 +1163,20 @@ export default function App() {
                       {cnt === "auto" ? "Auto" : `${cnt} Pages`}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 mb-4">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Design Concept</label>
+                <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-200 focus-within:border-slate-400 transition-colors">
+                  <Palette size={16} className="text-slate-400" />
+                  <input
+                    type="text"
+                    value={designConcept}
+                    onChange={(e) => setDesignConcept(e.target.value)}
+                    className="flex-1 bg-transparent outline-none text-xs font-semibold text-slate-700 placeholder-slate-400"
+                    placeholder="예: 사이버펑크, 따뜻한 감성, 미니멀 애플 스타일..."
+                  />
                 </div>
               </div>
 
