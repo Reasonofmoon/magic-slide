@@ -89,8 +89,9 @@ AI 기반 엔터프라이즈 프레젠테이션 스튜디오
 
 ## 고객의 목소리 <!-- layout: quote | accent: #14B8A6 -->
 "단 한 번의 클릭으로 모든 슬라이드가 통일되는 경험은 혁신적이었습니다."
-// Hyper-fast "Nano Banana" Model (Gemini 2.0 Flash)
-const MODEL_ID = "gemini-2.0-flash-exp"; 
+- Director, Strategy Lab`;
+
+const MODEL_ID = "gemini-3-flash-preview";
 
 const generateImage = async (prompt) => {
   const seed = Math.floor(Math.random() * 1000000);
@@ -98,8 +99,54 @@ const generateImage = async (prompt) => {
   // Using Pollinations.ai for instant, free generation (Flux/SDXL based)
   return `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${seed}`;
 };
+
+const TEMPLATES = [
   {
     id: "auto",
+    label: "자동 (Auto)",
+    icon: Sparkles,
+    desc: "AI가 내용에 맞춰 최적의 레이아웃을 자동 선택합니다.",
+    prompt: "사용자의 아이디어를 분석하여 가장 적절한 슬라이드 구성을 제안하라."
+  },
+  {
+    id: "swot",
+    label: "SWOT 분석",
+    icon: Layout,
+    desc: "강점, 약점, 기회, 위협을 4분면으로 시각화합니다.",
+    prompt: `SWOT 분석 전문가로서 내용을 분석하라. 
+반드시 다음 구조를 따라야 한다:
+## SWOT 분석 <!-- layout: swot | accent: #3B82F6 -->
+- Strength: [강점 내용]
+- Weakness: [약점 내용]
+- Opportunity: [기회 내용]
+- Threat: [위협 내용]`
+  },
+  {
+    id: "timeline",
+    label: "3단계 프로세스",
+    icon: ChevronRight,
+    desc: "순서가 있는 3단계 진행 과정을 타임라인으로 표현합니다.",
+    prompt: `프로세스 설계자로서 내용을 3단계로 요약하라.
+반드시 다음 구조를 따라야 한다:
+## 프로세스 로드맵 <!-- layout: timeline | accent: #10B981 -->
+- Step 1: [첫 번째 단계]
+- Step 2: [두 번째 단계]
+- Step 3: [세 번째 단계]`
+  },
+  {
+    id: "feature",
+    label: "3-Feature Grid",
+    icon: Zap,
+    desc: "3가지 핵심 기능을 강조하는 그리드 레이아웃입니다.",
+    prompt: `제품 기획자로서 3가지 핵심 요소를 도출하라.
+반드시 다음 구조를 따라야 한다:
+## 핵심 기능 <!-- layout: feature | accent: #8B5CF6 -->
+- Feature 1: [핵심 기능 1]
+- Feature 2: [핵심 기능 2]
+- Feature 3: [핵심 기능 3]`
+  },
+  {
+    id: "hero",
     label: "자동 (Auto)",
     icon: Sparkles,
     desc: "AI가 내용에 맞춰 최적의 레이아웃을 자동 선택합니다.",
