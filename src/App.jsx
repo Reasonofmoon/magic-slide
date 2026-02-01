@@ -89,6 +89,53 @@ AI 기반 엔터프라이즈 프레젠테이션 스튜디오
 "단 한 번의 클릭으로 모든 슬라이드가 통일되는 경험은 혁신적이었습니다."
 - Director, Strategy Lab`;
 
+const TEMPLATES = [
+  {
+    id: "auto",
+    label: "자동 (Auto)",
+    icon: Sparkles,
+    desc: "AI가 내용에 맞춰 최적의 레이아웃을 자동 선택합니다.",
+    prompt: "사용자의 아이디어를 분석하여 가장 적절한 슬라이드 구성을 제안하라."
+  },
+  {
+    id: "swot",
+    label: "SWOT 분석",
+    icon: Layout,
+    desc: "강점, 약점, 기회, 위협을 4분면으로 시각화합니다.",
+    prompt: `SWOT 분석 전문가로서 내용을 분석하라. 
+반드시 다음 구조를 따라야 한다:
+## SWOT 분석 <!-- layout: swot | accent: #3B82F6 -->
+- Strength: [강점 내용]
+- Weakness: [약점 내용]
+- Opportunity: [기회 내용]
+- Threat: [위협 내용]`
+  },
+  {
+    id: "timeline",
+    label: "3단계 프로세스",
+    icon: ChevronRight,
+    desc: "순서가 있는 3단계 진행 과정을 타임라인으로 표현합니다.",
+    prompt: `프로세스 설계자로서 내용을 3단계로 요약하라.
+반드시 다음 구조를 따라야 한다:
+## 프로세스 로드맵 <!-- layout: timeline | accent: #10B981 -->
+- Step 1: [첫 번째 단계]
+- Step 2: [두 번째 단계]
+- Step 3: [세 번째 단계]`
+  },
+  {
+    id: "feature",
+    label: "3-Feature Grid",
+    icon: Zap,
+    desc: "3가지 핵심 기능을 강조하는 그리드 레이아웃입니다.",
+    prompt: `제품 기획자로서 3가지 핵심 요소를 도출하라.
+반드시 다음 구조를 따라야 한다:
+## 핵심 기능 <!-- layout: feature | accent: #8B5CF6 -->
+- Feature 1: [핵심 기능 1]
+- Feature 2: [핵심 기능 2]
+- Feature 3: [핵심 기능 3]`
+  }
+];
+
 const STATUS_STEPS = [
   { key: "idle", label: "대기" },
   { key: "analyzing", label: "AI 설계" },
@@ -260,6 +307,7 @@ const loadImage = (url) =>
 export default function App() {
   const [themeKey, setThemeKey] = useState("modern");
   const [layoutMode, setLayoutMode] = useState("horizontal");
+  const [selectedTemplate, setSelectedTemplate] = useState("auto");
   const [userInput, setUserInput] = useState("");
   const [markdownText, setMarkdownText] = useState("");
   const [status, setStatus] = useState("idle");
@@ -357,9 +405,14 @@ export default function App() {
     setStatus("analyzing");
     setProgress({ current: 0, total: 1, label: "AI 설계" });
 
+    setProgress({ current: 0, total: 1, label: "AI 설계" });
+
+    const template = TEMPLATES.find(t => t.id === selectedTemplate) || TEMPLATES[0];
     const systemPrompt = `전문 PPT 디자이너로서 사용자의 아이디어를 마크다운으로 설계하라.
-반드시 지시어(<!-- layout: title | visual | bullets | metric | quote -->)를 포함하고,
-visual 레이아웃에는 적절한 Unsplash URL(| image: URL)을 추가하라.
+선택된 템플릿: ${template.label}
+템플릿 가이드: ${template.prompt}
+
+반드시 지시어(<!-- layout: ... -->)를 포함하고,
 전체적으로 테마 컬러(${theme.secondary})와 어울리는 accent를 지정하라.`;
 
     try {
@@ -538,6 +591,155 @@ visual 레이아웃에는 적절한 Unsplash URL(| image: URL)을 추가하라.
         fontFamily: "\"Manrope\"",
         fontWeight: 500
       });
+    } else if (section.layout === "swot") {
+      // 2x2 Grid Layout
+      const midX = size.w / 2;
+      const midY = size.h / 2;
+      
+      // Draw Quadrants
+      const quads = [
+        { label: "S", color: "#E0F2FE", text: "Strength", x: margin, y: margin },
+        { label: "W", color: "#FEF2F2", text: "Weakness", x: midX, y: margin },
+        { label: "O", color: "#ECFDF5", text: "Opportunity", x: margin, y: midY },
+        { label: "T", color: "#FFFBEB", text: "Threat", x: midX, y: midY }
+      ];
+
+      quads.forEach((q, i) => {
+        ctx.fillStyle = q.color;
+        roundRectPath(ctx, q.x, q.y, midX - margin, midY - margin, 20);
+        ctx.fill();
+        
+        ctx.fillStyle = theme.secondary;
+        ctx.font = `900 ${size.w * 0.05}px "Space Grotesk"`;
+        ctx.textAlign = "left";
+        ctx.fillText(q.label, q.x + 30, q.y + 70);
+        
+        // Content
+        const item = section.content.find(line => line.toLowerCase().startsWith(`- ${q.text.toLowerCase()}`)) || "";
+        const cleanItem = item.split(":").slice(1).join(":").trim();
+        
+        ctx.fillStyle = theme.text;
+        fitTextBlock({
+           ctx,
+           text: cleanItem,
+           box: { x: q.x + 30, y: q.y + 100, w: midX - margin - 60, h: midY - margin - 120 },
+           maxFontPx: 30,
+           minFontPx: 16,
+           lineHeightRatio: 1.5,
+           fontWeight: 500
+        });
+      });
+      
+      // Center Title
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = "rgba(0,0,0,0.1)";
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(midX, midY, size.w * 0.08, 0, Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      ctx.fillStyle = theme.text;
+      ctx.textAlign = "center";
+      ctx.font = `800 ${size.w * 0.02}px "Space Grotesk"`;
+      ctx.fillText("SWOT", midX, midY + size.w * 0.01);
+
+    } else if (section.layout === "timeline") {
+       // Timeline Layout
+       ctx.fillStyle = accent;
+       fitTextBlock({
+         ctx,
+         text: section.title,
+         box: { x: margin, y: margin, w: innerW, h: innerH * 0.2 },
+         maxFontPx: 60,
+         minFontPx: 40,
+         align: "center",
+         fontWeight: 800
+       });
+
+       const steps = section.content.filter(l => l.toLowerCase().startsWith("- step"));
+       const stepW = innerW / 3;
+       const lineY = size.h * 0.5;
+
+       // Connect Line
+       ctx.beginPath();
+       ctx.moveTo(margin + stepW/2, lineY);
+       ctx.lineTo(size.w - margin - stepW/2, lineY);
+       ctx.strokeStyle = theme.muted;
+       ctx.lineWidth = 4;
+       ctx.stroke();
+
+       steps.forEach((step, i) => {
+          const centerX = margin + stepW * i + stepW/2;
+          const text = step.split(":").slice(1).join(":").trim();
+          
+          ctx.beginPath();
+          ctx.arc(centerX, lineY, 20, 0, Math.PI*2);
+          ctx.fillStyle = accent;
+          ctx.fill();
+          
+          ctx.fillStyle = theme.text;
+          fitTextBlock({
+            ctx,
+            text,
+            box: { x: centerX - stepW/2 + 20, y: lineY + 40, w: stepW - 40, h: 200 },
+            maxFontPx: 30,
+            minFontPx: 20,
+            align: "center",
+            fontWeight: 600
+          });
+          
+          ctx.fillStyle = theme.muted;
+          ctx.font = `700 24px "Space Grotesk"`;
+          ctx.fillText(`STEP 0${i+1}`, centerX, lineY - 40);
+       });
+
+    } else if (section.layout === "feature") {
+       // 3-Column Feature Grid
+       ctx.fillStyle = accent;
+       fitTextBlock({
+         ctx,
+         text: section.title,
+         box: { x: margin, y: margin, w: innerW, h: innerH * 0.15 },
+         maxFontPx: 60,
+         minFontPx: 40,
+         align: "center",
+         fontWeight: 800
+       });
+       
+       const feats = section.content.filter(l => l.toLowerCase().startsWith("- feature"));
+       const colW = innerW / 3;
+       
+       feats.forEach((feat, i) => {
+         const colX = margin + colW * i;
+         const text = feat.split(":").slice(1).join(":").trim();
+         
+         ctx.fillStyle = "white";
+         ctx.shadowBlur = 20;
+         ctx.shadowColor = "rgba(0,0,0,0.05)";
+         roundRectPath(ctx, colX + 20, margin + innerH*0.25, colW - 40, innerH * 0.6, 30);
+         ctx.fill();
+         ctx.shadowBlur = 0;
+         
+         // Icon Placeholder Circle
+         ctx.fillStyle = `${accent}20`; // 20% opacity
+         ctx.beginPath();
+         ctx.arc(colX + colW/2, margin + innerH*0.35, 40, 0, Math.PI*2);
+         ctx.fill();
+         
+         ctx.fillStyle = theme.text;
+         fitTextBlock({
+            ctx,
+            text,
+            box: { x: colX + 40, y: margin + innerH*0.45, w: colW - 80, h: innerH * 0.3 },
+            maxFontPx: 28,
+            minFontPx: 20,
+            align: "center",
+            lineHeightRatio: 1.4,
+            fontWeight: 500
+         });
+       });
+
     } else {
       ctx.fillStyle = accent;
       fitTextBlock({
@@ -761,6 +963,55 @@ visual 레이아웃에는 적절한 Unsplash URL(| image: URL)을 추가하라.
                 </div>
                 <span className="text-[10px] font-bold text-slate-400">AI + Markdown</span>
               </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTemplate(t.id)}
+                    className={`p-4 rounded-2xl border text-left transition-all ${
+                      selectedTemplate === t.id
+                        ? "bg-slate-900 border-slate-900 ring-2 ring-offset-2 ring-slate-900"
+                        : "bg-slate-50 border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                       <t.icon size={18} className={selectedTemplate === t.id ? "text-white" : "text-slate-900"} />
+                       <span className={`text-xs font-bold ${selectedTemplate === t.id ? "text-white" : "text-slate-900"}`}>
+                         {t.label}
+                       </span>
+                    </div>
+                    <p className={`text-[10px] leading-tight ${selectedTemplate === t.id ? "text-slate-300" : "text-slate-500"}`}>
+                      {t.desc}
+                    </p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTemplate(t.id)}
+                    className={`p-4 rounded-2xl border text-left transition-all ${
+                      selectedTemplate === t.id
+                        ? "bg-slate-900 border-slate-900 ring-2 ring-offset-2 ring-slate-900"
+                        : "bg-slate-50 border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                       <t.icon size={18} className={selectedTemplate === t.id ? "text-white" : "text-slate-900"} />
+                       <span className={`text-xs font-bold ${selectedTemplate === t.id ? "text-white" : "text-slate-900"}`}>
+                         {t.label}
+                       </span>
+                    </div>
+                    <p className={`text-[10px] leading-tight ${selectedTemplate === t.id ? "text-slate-300" : "text-slate-500"}`}>
+                      {t.desc}
+                    </p>
+                  </button>
+                ))}
+            </div>
+
               <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
@@ -768,8 +1019,6 @@ visual 레이아웃에는 적절한 Unsplash URL(| image: URL)을 추가하라.
                 placeholder="발표 내용을 입력하세요..."
               />
               <div className="mt-4 flex flex-col gap-3">
-                </div>
-                
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-500 leading-relaxed">
                   <div className="flex items-center gap-2 font-bold text-slate-700 mb-1">
                     <HelpCircle size={14} /> 무료 Gemini API Key 발급 방법
@@ -797,6 +1046,15 @@ visual 레이아웃에는 적절한 Unsplash URL(| image: URL)을 추가하라.
                     {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                <button
+                  onClick={autoGenerateSlides}
+                  disabled={isAiProcessing || !userInput}
+                  className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-[2rem] font-black text-base shadow-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-30"
+                >
+                  {isAiProcessing ? <Loader2 className="animate-spin" /> : <BrainCircuit />} AI 슬라이드 자동 설계
+                </button>
+              </div>
+            </div>
                 <button
                   onClick={autoGenerateSlides}
                   disabled={isAiProcessing || !userInput}
