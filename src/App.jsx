@@ -520,13 +520,32 @@ export default function App() {
       const data = await response.json();
       const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (result) {
+        // 1. First Parse
+        const sections = buildSections(result.trim());
+        
+        // 2. Generate Images in Parallel
+        const updatedSections = await Promise.all(sections.map(async (sec) => {
+           if (sec.imagePrompt) {
+              try {
+                 const url = await generateImage(sec.imagePrompt);
+                 return { ...sec, imageUrl: url };
+              } catch (e) {
+                 console.error("Image Gen Failed", e);
+                 return sec;
+              }
+           }
+           return sec;
+        }));
+
         setMarkdownText(result.trim());
+        setSlides(updatedSections);
         setStatus("idle");
       } else {
         setError("AI 응답을 확인하지 못했습니다. 입력을 줄이거나 다시 시도해 주세요.");
         setStatus("idle");
       }
     } catch (e) {
+      console.error(e);
       setError("AI 생성 요청 중 오류가 발생했습니다.");
       setStatus("idle");
     } finally {
@@ -544,11 +563,35 @@ export default function App() {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const grad = ctx.createLinearGradient(0, 0, 0, size.h);
-    grad.addColorStop(0, theme.gradient[0]);
-    grad.addColorStop(1, theme.gradient[1]);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, size.w, size.h);
+    // Draw Background Image if available (Hero Layout)
+    if ((section.layout === "hero" || section.layout === "title") && section.imageUrl) {
+        try {
+          const img = await loadImage(section.imageUrl);
+          if (img) {
+             const scale = Math.max(size.w / img.width, size.h / img.height);
+             const x = (size.w / 2) - (img.width / 2) * scale;
+             const y = (size.h / 2) - (img.height / 2) * scale;
+             ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+             
+             ctx.fillStyle = "rgba(0,0,0,0.6)"; // Dark Overlay
+             ctx.fillRect(0, 0, size.w, size.h);
+          } else {
+             renderSolidBackground();
+          }
+        } catch(e) { renderSolidBackground(); }
+    } else {
+       renderSolidBackground();
+    }
+    
+    function renderSolidBackground() {
+        const grad = ctx.createLinearGradient(0, 0, 0, size.h);
+        grad.addColorStop(0, theme.gradient[0]);
+        grad.addColorStop(1, theme.gradient[1]);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size.w, size.h);
+    }
+    
+    /* Removed old background drawing code blocks */
 
     const margin = size.w * 0.05;
     const innerW = size.w - margin * 2;
